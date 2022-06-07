@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import SmallCalendar from "./SmallCalendar";
 import GlobalContext from "../context/GlobalContext";
+import Axios from "axios";
 
 const labelsClasses = ["indigo", "gray", "green", "blue", "red", "purple"];
 
@@ -30,13 +31,34 @@ export default function EventModal() {
             id: selectedEvent ? selectedEvent.id : Date.now(),
         };
         if (selectedEvent) {
+            Axios.put("http://localhost:3001/edit", calendarEvent).then(
+                (response) => {
+                    console.log(response);
+                }
+            );
             dispatchCalEvent({ type: "update", payload: calendarEvent });
         } else {
+            Axios.post("http://localhost:3001/save", calendarEvent).then(
+                (response) => {
+                    console.log(response);
+                }
+            );
             dispatchCalEvent({ type: "push", payload: calendarEvent });
         }
-
         setShowEventModal(false);
     }
+    const handleDeleteElement = () => {
+        Axios.delete(`http://localhost:3001/delete/${selectedEvent.id}`).then(
+            (response) => {
+                console.log(response);
+            }
+        );
+        dispatchCalEvent({
+            type: "delete",
+            payload: selectedEvent,
+        });
+        setShowEventModal(false);
+    };
     return (
         <div className="h-screen w-full fixed left-0 top-0 flex justify-center items-center">
             <form className="bg-gray-900 rounded-lg shadow-2xl w-1/4">
@@ -47,13 +69,7 @@ export default function EventModal() {
                     <div>
                         {selectedEvent && (
                             <span
-                                onClick={() => {
-                                    dispatchCalEvent({
-                                        type: "delete",
-                                        payload: selectedEvent,
-                                    });
-                                    setShowEventModal(false);
-                                }}
+                                onClick={handleDeleteElement}
                                 className="material-icons-outlined text-white cursor-pointer"
                             >
                                 delete

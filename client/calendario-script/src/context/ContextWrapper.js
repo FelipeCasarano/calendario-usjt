@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useReducer, useMemo } from "react";
 import GlobalContext from "./GlobalContext";
 import dayjs from "dayjs";
+import Axios from "axios";
 
 function savedEventsReducer(state, { type, payload }) {
     switch (type) {
         case "push":
-            console.log(...state);
             return [...state, payload];
         case "update":
             return state.map((evt) => (evt.id === payload.id ? payload : evt));
@@ -30,19 +30,26 @@ export default function ContextWrapper(props) {
     const [showEventModal, setShowEventModal] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [labels, setLabels] = useState([]);
+    const [listEvents, setListEvents] = useState([]);
     const [savedEvents, dispatchCalEvent] = useReducer(
         savedEventsReducer,
         [],
         initEvents
     );
+    useEffect(() => {
+        Axios.get("http://localhost:3001/getEvents").then((response) => {
+            setListEvents(response.data);
+        });
+    }, []);
+
     const filteredEvents = useMemo(() => {
-        return savedEvents.filter((evt) =>
+        return listEvents.filter((evt) =>
             labels
                 .filter((lbl) => lbl.checked)
                 .map((lbl) => lbl.label)
                 .includes(evt.label)
         );
-    }, [savedEvents, labels]);
+    }, [savedEvents, labels, listEvents]);
     useEffect(() => {
         localStorage.setItem("savedEvents", JSON.stringify(savedEvents));
     }, [savedEvents]);
